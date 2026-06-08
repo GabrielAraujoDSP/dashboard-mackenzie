@@ -1,0 +1,195 @@
+GUIA DE INSTALAÇÃO COMPLETO — Dashboard de Avaliação Discente Mackenzie
+==========================================================================
+Objetivo: colocar o sistema no ar de forma que ninguém precise mexer em
+nada após a configuração inicial.
+
+Tempo estimado: 30 a 60 minutos na primeira vez.
+
+==========================================================================
+PARTE 1 — PREPARAR O GOOGLE DRIVE
+==========================================================================
+
+1. Acesse drive.google.com com a conta @gmail que será a "dona" do sistema.
+   (Recomenda-se uma conta institucional ou dedicada ao projeto.)
+
+2. Na raiz do Drive (Meu Drive), crie uma pasta chamada exatamente:
+      mackenzie
+   (tudo minúsculo, sem acento)
+
+3. Dentro de "mackenzie", crie uma pasta para cada curso.
+   Exemplo:
+      mackenzie/
+        Ciência de dados/
+
+4. Dentro de cada curso, crie uma pasta para o semestre atual.
+   Exemplo:
+      mackenzie/
+        Ciência de dados/
+          2026.1/
+
+5. Dentro da pasta do semestre, coloque a planilha de respostas do Google
+   Forms (exportada ou vinculada). O nome do arquivo DEVE começar com:
+      AVALIAÇÃO DISCENTE
+   Exemplo de nome válido:
+      AVALIAÇÃO DISCENTE - Ciência de dados - 1º semestre de 2026.xlsx
+
+   IMPORTANTE: O arquivo pode ser .xlsx, .ods ou uma Planilha Google nativa.
+   O sistema pega o PRIMEIRO arquivo cujo nome começa com "AVALIAÇÃO DISCENTE"
+   dentro da pasta do semestre.
+
+==========================================================================
+PARTE 2 — CRIAR E PUBLICAR O GOOGLE APPS SCRIPT
+==========================================================================
+
+1. Acesse script.google.com (com a MESMA conta do Drive do passo anterior).
+
+2. Clique em "Novo projeto".
+
+3. Apague todo o código que aparecer na tela.
+
+4. Copie e cole o conteúdo do arquivo:
+      apps-script/Code.gs
+   (arquivo deste repositório)
+
+5. Clique em "Salvar" (ícone de disquete ou Ctrl+S).
+   Dê um nome ao projeto, ex: "Dashboard Avaliação Discente".
+
+6. Clique em "Implantar" → "Nova implantação".
+
+7. Na janela que abrir:
+   - Tipo: selecione "Aplicativo da Web"
+   - Descrição: (opcional, ex: "v1")
+   - Executar como: "Eu (seu e-mail)"
+   - Quem tem acesso: "Qualquer pessoa" (OBRIGATÓRIO para o dashboard funcionar)
+
+8. Clique em "Implantar".
+   → O Google vai pedir para você autorizar o acesso ao Drive. Aceite tudo.
+
+9. Copie a URL gerada. Ela será algo como:
+      https://script.google.com/macros/s/AKfyc.../exec
+   Guarde essa URL — você vai precisar dela no próximo passo.
+
+   ATENÇÃO: Toda vez que você editar o Code.gs e quiser aplicar as mudanças,
+   deve criar uma NOVA implantação (não editar a existente). A URL muda a cada
+   nova implantação.
+
+==========================================================================
+PARTE 3 — CONFIGURAR O DASHBOARD
+==========================================================================
+
+1. Abra o arquivo:
+      dashboard/js/main.js
+
+2. Na linha 2, substitua o texto entre aspas pelo URL copiado no Passo 2.9:
+      APPS_SCRIPT_URL: "COLE_AQUI_A_URL_DO_WEB_APP"
+   Deve ficar assim:
+      APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfyc.../exec"
+
+3. Salve o arquivo.
+
+==========================================================================
+PARTE 4 — PUBLICAR O DASHBOARD NA INTERNET (acesso via link)
+==========================================================================
+
+OPÇÃO A — GitHub Pages (gratuito, recomendado):
+
+   a. Crie uma conta em github.com (se não tiver).
+   b. Crie um repositório público com o nome que quiser.
+   c. Faça upload de todos os arquivos da pasta "dashboard/" para a raiz
+      do repositório (ou configure o Pages para servir a pasta /dashboard).
+   d. Vá em Settings → Pages → Source: selecione a branch "main" e a pasta
+      raiz (ou /dashboard).
+   e. Clique em Save. Em alguns minutos o site estará em:
+         https://seuusuario.github.io/nome-do-repositorio/
+   f. Compartilhe esse link com quem for usar o dashboard.
+
+OPÇÃO B — Arquivo local (sem internet, uso interno):
+
+   a. Basta abrir o arquivo dashboard/index.html diretamente no navegador.
+   b. O dashboard funciona 100% offline depois de carregado, pois não tem
+      backend próprio — apenas consome o Apps Script.
+   c. Para compartilhar, compacte a pasta "dashboard/" em .zip e envie.
+      O destinatário extrai e abre o index.html.
+
+OPÇÃO C — Google Sites (sem código, integrado ao Google):
+
+   a. Acesse sites.google.com e crie um novo site.
+   b. Adicione uma seção "Incorporar" e cole o HTML do index.html.
+   c. Publique o site. Funciona bem para equipes que já usam Google Workspace.
+
+==========================================================================
+PARTE 5 — CONFIGURAR ATUALIZAÇÃO AUTOMÁTICA DOS DADOS
+==========================================================================
+
+O dashboard possui atualização automática embutida (sem precisar de servidor).
+Para ativar:
+
+1. Abra o dashboard no navegador.
+2. Na barra lateral esquerda, vá até "Atualização automática".
+3. Ative o toggle "Ativar".
+4. Defina o intervalo em horas (ex: 24 para atualizar uma vez por dia).
+5. O dashboard passa a checar automaticamente sempre que estiver aberto.
+
+LIMITAÇÃO IMPORTANTE:
+   A atualização automática só funciona enquanto o navegador está aberto
+   com o dashboard carregado. Se ninguém estiver com o dashboard aberto,
+   nenhuma atualização acontece — mas isso não é um problema, pois os dados
+   são carregados frescos ao abrir o dashboard.
+
+Para verificar se os dados estão desatualizados: um badge amarelo aparece
+automaticamente no topo da tela com "Dados desatualizados — clique para
+atualizar".
+
+==========================================================================
+PARTE 6 — ADICIONAR NOVOS SEMESTRES (manutenção futura)
+==========================================================================
+
+Quando começar um novo semestre (ex: 2026.2), siga estes passos:
+
+1. No Google Drive, dentro da pasta do curso, crie uma nova pasta:
+      mackenzie/Ciência de dados/2026.2/
+
+2. Dentro dessa pasta, coloque a planilha de respostas com nome começando em:
+      AVALIAÇÃO DISCENTE...
+
+3. No dashboard, clique em "Atualizar dados".
+   → O novo semestre aparece automaticamente no seletor. Nenhum código
+   precisa ser alterado.
+
+==========================================================================
+PARTE 7 — ADICIONAR NOVOS CURSOS (manutenção futura)
+==========================================================================
+
+1. No Google Drive, dentro de "mackenzie/", crie uma nova pasta com o nome
+   do curso:
+      mackenzie/Engenharia de Software/
+
+2. Crie as subpastas de semestre e coloque as planilhas.
+
+3. No dashboard, clique em "Atualizar dados".
+   → O novo curso aparece automaticamente no seletor.
+
+==========================================================================
+CHECKLIST FINAL — ANTES DE CONSIDERAR O SISTEMA NO AR
+==========================================================================
+
+[ ] Pasta "mackenzie" criada na raiz do Drive
+[ ] Pelo menos um curso com pelo menos um semestre e uma planilha
+[ ] Apps Script implantado como Web App com acesso "Qualquer pessoa"
+[ ] URL do Apps Script colada em dashboard/js/main.js
+[ ] Dashboard abre no navegador e carrega dados corretamente
+[ ] Seletor de curso e semestre mostram os dados esperados
+[ ] Exportação de PDF e XLSX funcionando
+[ ] Link do dashboard compartilhado com os usuários finais
+
+==========================================================================
+SUPORTE E MANUTENÇÃO
+==========================================================================
+
+O sistema não requer manutenção técnica regular. As únicas ações manuais
+necessárias são:
+  - Criar pasta do novo semestre no Drive (uma vez por semestre)
+  - Colocar a planilha de respostas na pasta correta (uma vez por semestre)
+
+Tudo o mais — leitura dos dados, exibição dos gráficos, filtros, exportação
+— é automático.
