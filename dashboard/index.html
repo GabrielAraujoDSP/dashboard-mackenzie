@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Avaliação Discente Mackenzie</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-brand">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menu">☰</button>
+      <span class="brand-logo">Mackenzie</span>
+      <span class="brand-sep">|</span>
+      <span class="brand-title">Dashboard de Avaliação Discente</span>
+    </div>
+    <div class="header-right">
+      <div id="stale-badge" title="Clique para atualizar" onclick="fetchData()">
+        ⚠ Dados desatualizados — clique par
+        a atualizar
+      </div>
+      <button class="btn-theme active" data-theme="theme-dark">Escuro</button>
+      <button class="btn-theme" data-theme="theme-light">Claro</button>
+      <button class="btn-theme" data-theme="theme-contrast">Contraste</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- Overlay para fechar sidebar no mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="filter-group">
+        <span class="filter-label">Curso</span>
+        <select id="sel-curso" class="filter-select"></select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Semestre</span>
+        <select id="sel-semestre" class="filter-select">
+          <option value="todos">Todos</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Turmas</span>
+        <div id="turmas-container"></div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Critério</span>
+        <select id="sel-criterio" class="filter-select">
+          <option value="todos">Todos os critérios</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Mês</span>
+        <select id="sel-mes" class="filter-select">
+          <option value="todos">Todos os meses</option>
+        </select>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <div class="filter-group">
+        <button id="btn-atualizar" class="btn-primary">
+          <span class="spinner" id="spinner"></span>
+          Atualizar dados
+        </button>
+        <span id="last-update"></span>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <div class="filter-group">
+        <span class="filter-label">Atualização automática</span>
+        <div class="schedule-row">
+          <span>Ativar</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-schedule">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="schedule-hours-row">
+          <span>A cada</span>
+          <input type="number" id="schedule-hours" value="24" min="1" max="168">
+          <span>horas</span>
+        </div>
+        <span id="next-pull-label">Desativado</span>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <!-- EXPORTAR RELATÓRIO -->
+      <div class="filter-group">
+        <span class="filter-label">Exportar relatório</span>
+        <span class="export-hint">Filtros aplicados automaticamente</span>
+        <button id="btn-export-pdf" class="btn-export btn-export-pdf">
+          &#x1F4C4; Exportar PDF
+        </button>
+        <button id="btn-export-xlsx" class="btn-export btn-export-xlsx">
+          &#x1F4CA; Exportar XLSX
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="app-main">
+
+      <div id="error-msg"></div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total de respostas</div>
+          <div class="kpi-value font-mono" id="kpi-respostas">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Média geral</div>
+          <div class="kpi-value" id="kpi-media">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Nota mais alta</div>
+          <div class="kpi-value" id="kpi-melhor-val">—</div>
+          <div class="kpi-sub" id="kpi-melhor">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Nota mais baixa</div>
+          <div class="kpi-value" id="kpi-pior-val">—</div>
+          <div class="kpi-sub" id="kpi-pior">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Turmas respondentes</div>
+          <div class="kpi-value font-mono" id="kpi-turmas">—</div>
+        </div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="charts-grid">
+
+        <div class="chart-card chart-card--radar">
+          <div class="chart-title">Radar — Visão por Critério</div>
+          <div class="chart-wrap"><canvas id="chart-radar"></canvas></div>
+        </div>
+
+        <div class="chart-card chart-card--barras">
+          <div class="chart-title-row">
+            <span class="chart-title">Ranking de Critérios</span>
+            <div id="barras-turmas-badges" class="chart-turmas-badges"></div>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-barras"></canvas></div>
+        </div>
+
+        <div id="sec-linha" class="chart-card full-width" style="display:none">
+          <div class="chart-title">Evolução Mensal</div>
+          <div class="chart-wrap"><canvas id="chart-linha"></canvas></div>
+        </div>
+
+        <div id="sec-histograma" class="chart-card full-width" style="display:none">
+          <div class="chart-title">Distribuição de Notas — Critério Selecionado</div>
+          <div class="chart-wrap"><canvas id="chart-histograma"></canvas></div>
+        </div>
+
+        <div id="sec-comparativo" class="chart-card full-width" style="display:none">
+          <div class="chart-title">Comparativo entre Semestres</div>
+          <div class="chart-wrap"><canvas id="chart-comparativo"></canvas></div>
+        </div>
+
+      </div>
+
+      <!-- Tabela detalhada -->
+      <div class="table-section">
+        <div class="table-header">
+          <span class="table-title">Detalhamento por Resposta</span>
+          <div class="table-actions">
+            <button id="btn-toggle-table" class="btn-secondary">▲ Recolher</button>
+          </div>
+        </div>
+        <div id="table-wrapper">
+          <table>
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div id="pagination"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
